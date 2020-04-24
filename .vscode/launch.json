@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {            "name": "launch: debug shared_ptr_tree/shared_ptr_tree_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/shared_ptr_tree/shared_ptr_tree_test/build/shared_ptr_tree_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/shared_ptr_tree/shared_ptr_tree_test/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build: shared_ptr_tree/shared_ptr_tree_test",
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ]
+}
