@@ -131,6 +131,11 @@ TEST(stdlib_test, shared_ptr_comparison)
     ASSERT_EQ(foo, bar);
 }
 
+TEST(stdlib_test, using_auto_in_class_declaration)
+{
+    auto foo = new WordBranch();
+}
+
 TEST(word_branch, declaration_bare)
 {
     WordBranch foo;
@@ -248,10 +253,10 @@ TEST(word_branch, get_parent)
 TEST(word_branch, get_children_iter)
 {
 
-    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>("A root");
-    std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("child 0");
-    std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("child 1");
-    std::shared_ptr<WordBranch> qux = std::make_shared<WordBranch>("child 2");
+    auto foo = std::make_shared<WordBranch>("A root");
+    auto bar = std::make_shared<WordBranch>("child 0");
+    auto baz = std::make_shared<WordBranch>("child 1");
+    auto qux = std::make_shared<WordBranch>("child 2");
 
     addChild(foo, bar);
     addChild(foo, baz);
@@ -276,14 +281,14 @@ TEST(word_branch, children_destroyed)
 {
     std::weak_ptr<WordBranch> cant_keep_alive;
     {
-        std::shared_ptr<WordBranch> layer0_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer1_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer1_1 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer2_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer3_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer3_1 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer4_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer4_1 = std::make_shared<WordBranch>();
+        auto layer0_0 = std::make_shared<WordBranch>();
+        auto layer1_0 = std::make_shared<WordBranch>();
+        auto layer1_1 = std::make_shared<WordBranch>();
+        auto layer2_0 = std::make_shared<WordBranch>();
+        auto layer3_0 = std::make_shared<WordBranch>();
+        auto layer3_1 = std::make_shared<WordBranch>();
+        auto layer4_0 = std::make_shared<WordBranch>();
+        auto layer4_1 = std::make_shared<WordBranch>();
 
         cant_keep_alive = layer4_1;
 
@@ -311,14 +316,14 @@ TEST(word_branch, children_kept_alive)
         cant_keep_alive3_1;
 
     {
-        std::shared_ptr<WordBranch> layer0_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer1_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer1_1 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer2_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer3_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer3_1 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer4_0 = std::make_shared<WordBranch>();
-        std::shared_ptr<WordBranch> layer4_1 = std::make_shared<WordBranch>();
+        auto layer0_0 = std::make_shared<WordBranch>();
+        auto layer1_0 = std::make_shared<WordBranch>();
+        auto layer1_1 = std::make_shared<WordBranch>();
+        auto layer2_0 = std::make_shared<WordBranch>();
+        auto layer3_0 = std::make_shared<WordBranch>();
+        auto layer3_1 = std::make_shared<WordBranch>();
+        auto layer4_0 = std::make_shared<WordBranch>();
+        auto layer4_1 = std::make_shared<WordBranch>();
 
         cant_keep_alive0_0 = layer0_0;
         cant_keep_alive1_0 = layer1_0;
