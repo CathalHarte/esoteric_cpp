@@ -10,13 +10,15 @@
 * Includes
 *******************************************************************************/
 
+#include <smart_tree.h>
+
 #include <memory>
 
 #include <gtest/gtest.h>
 
-#include <smart_tree.h>
-
 using namespace smart_tree;
+using WordBranch = Branch<std::string>;
+
 namespace
 {
 

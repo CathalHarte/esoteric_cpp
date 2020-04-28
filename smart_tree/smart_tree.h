@@ -4,6 +4,9 @@
  * @brief Named a smart tree because it is an unsorted tree implemented using 
  *        smart pointers
  * 
+ *        Header only template class
+ * 
+ * 
  * @author Cathal Harte <cathal.harte@protonmail.com>
  */
 #ifndef _SMART_TREE_H
@@ -13,8 +16,9 @@
 * Includes
 ******************************************************************************/
 
-#include <string>
+#include <cassert>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace smart_tree
@@ -46,32 +50,58 @@ namespace smart_tree
 //          As long as a reference to the parent remains, the children will not expire
 //          The corollary of this is that if a reference to a child is kept and no references to the parent are
 //          then the parent and siblings will expire and the child becomes the new root
-class WordBranch
+template <typename T>
+class Branch
 {
 public:
-    WordBranch(std::string data = "") : data(data) {}
-    std::string data;
+    Branch() {}
+    Branch(T data) : data(data) {}
+    T data;
 
-    bool isRoot();
-    std::shared_ptr<WordBranch> getParent();
-    std::size_t getNumChildren();
-    std::vector<std::shared_ptr<WordBranch>>::iterator childrenBegin() { children.begin(); }
-    std::vector<std::shared_ptr<WordBranch>>::iterator childrenEnd() { children.end(); }
+    bool isRoot() { return parent.expired(); }
+    std::shared_ptr<Branch<T>> getParent() { return parent.lock(); }
+    std::size_t getNumChildren() { return children.size(); }
+    typename std::vector<std::shared_ptr<Branch<T>>>::iterator childrenBegin() { children.begin(); }
+    typename std::vector<std::shared_ptr<Branch<T>>>::iterator childrenEnd() { children.end(); }
 
 private:
-    std::weak_ptr<WordBranch> parent;
-    std::vector<std::shared_ptr<WordBranch>> children;
-    friend void addChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
-    friend void removeChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
+    std::weak_ptr<Branch<T>> parent;
+    std::vector<std::shared_ptr<Branch<T>>> children;
+
+    template <typename Y>
+    friend void addChild(std::shared_ptr<Branch<Y>> parent, std::shared_ptr<Branch<Y>> child);
+    template <typename Y>
+    friend void removeChild(std::shared_ptr<Branch<Y>> parent, std::shared_ptr<Branch<Y>> child);
 };
 
 /*******************************************************************************
 * Function prototypes
 *******************************************************************************/
 
-// should I do the friend class pattern here?
-void addChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
-void removeChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
+template <typename Y>
+void addChild(std::shared_ptr<Branch<Y>> parent, std::shared_ptr<Branch<Y>> child)
+{
+    assert(("Prospective child is parentless", child->parent.expired() == true));
+    parent->children.emplace_back(child);
+    child->parent = parent;
+}
+
+template <typename Y>
+void removeChild(std::shared_ptr<Branch<Y>> parent, std::shared_ptr<Branch<Y>> child)
+{
+    auto iter = parent->children.begin();
+    auto end = parent->children.end();
+    for (; iter != end; advance(iter, 1))
+    {
+        if (child == *iter)
+        {
+            parent->children.erase(iter);
+            child->parent.reset();
+            return;
+        }
+    }
+    throw "is not a child of parent";
+}
 
 /*! @}
  */
