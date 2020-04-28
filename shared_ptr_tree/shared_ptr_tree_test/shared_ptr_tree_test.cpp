@@ -107,25 +107,50 @@ TEST(stdlib_test, unique_ptr_1)
     ASSERT_EQ(*raw_ptr, 165);
 }
 
+TEST(stdlib_test, delete_pointer_to_stack)
+{
+    int a = 11;
+    ASSERT_DEATH(delete &a, "");
+
+    WordBranch foo;
+    ASSERT_DEATH(delete &foo, "");
+}
+
+TEST(stdlib_test, shared_ptr_comparison)
+{
+    // how do we quickly determine if two shared_ptr point to the same location?
+
+    std::shared_ptr<int> foo = std::make_shared<int>(11);
+    std::shared_ptr<int> bar(foo);
+    *foo = 12;
+    ASSERT_EQ(*bar, 12);
+    ASSERT_EQ(foo.use_count(), 2);
+
+    ASSERT_EQ(foo, bar);
+}
+
 TEST(word_branch, declaration_bare)
 {
     WordBranch foo;
     ASSERT_EQ(foo.name, "");
+    ASSERT_FALSE(foo.getParent());
+    ASSERT_EQ(foo.getNumChildren(), 0);
 }
 
 TEST(word_branch, declaration_string)
 {
     WordBranch foo("foo");
     ASSERT_EQ(foo.name, "foo");
+    ASSERT_FALSE(foo.getParent());
+    ASSERT_EQ(foo.getNumChildren(), 0);
 }
 
 TEST(word_branch, ptr_declarations)
 {
-    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>();
     std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("bar");
     std::shared_ptr<WordBranch> baz;
 
-    ASSERT_EQ(baz.use_count(),0);
+    ASSERT_EQ(baz.use_count(), 0);
 
     baz = bar;
 
@@ -137,42 +162,188 @@ TEST(word_branch, ptr_declarations)
     ASSERT_EQ(baz->name, "bar");
 }
 
-TEST(word_branch, out_of_scope)
-{
-    std::weak_ptr<WordBranch> on_a_branch_1, on_a_branch_2;
-    {
-        std::shared_ptr<WordBranch> trunk = std::make_shared<WordBranch>();
-        trunk->name = "I am the trunk";
-
-        {
-
-            std::shared_ptr<WordBranch> branch_1 = std::make_shared<WordBranch>();
-            branch_1->name = "I am the first branch";
-            branch_1->parent = trunk;
-            trunk->children.push_back(branch_1);
-
-            on_a_branch_1 = branch_1;
-
-            std::shared_ptr<WordBranch> branch_2 = std::make_shared<WordBranch>();
-
-            on_a_branch_2 = branch_2;
-        }
-
-        {
-            std::shared_ptr<WordBranch> temp = on_a_branch_1.lock();
-            ASSERT_EQ(temp->name, "I am the first branch");
-            ASSERT_FALSE(on_a_branch_2.lock());
-        }
-    }
-    ASSERT_FALSE(on_a_branch_1.lock());
-}
-
-
-
 // A WordBranch is a root if it has no parent, i.e. it has just been created, or if its own parent has been reset
 TEST(word_branch, is_root)
 {
     std::shared_ptr<WordBranch> root = std::make_shared<WordBranch>("I'm the root");
     ASSERT_TRUE(root->isRoot());
 }
+
+// we can't add by val, WordBranch members have to be shared_ptr to begin with
+TEST(word_branch, add_children_ref)
+{
+    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>("The root");
+    {
+        std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("a branch");
+        std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("another branch");
+        addChild(foo, bar);
+        addChild(foo, baz);
+
+        ASSERT_TRUE(bar->getParent());
+    }
+    ASSERT_EQ(foo->getNumChildren(), 2);
+}
+
+TEST(word_branch, remove_child)
+{
+    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>("The root");
+    {
+        std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("a branch");
+        std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("another branch");
+        addChild(foo, bar);
+        addChild(foo, baz);
+
+        removeChild(foo, bar);
+
+        ASSERT_FALSE(bar->getParent());
+    }
+    ASSERT_EQ(foo->getNumChildren(), 1);
+}
+
+// A child cannot have two parents, then it wouldn't exactly be a tree
+TEST(word_branch, child_relocation_fail)
+{
+    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>("a root");
+    std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("another root");
+    std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("child 2");
+
+    addChild(foo, baz);
+
+    ASSERT_DEATH(addChild(bar, baz), "");
+}
+
+TEST(word_branch, child_relocation_success)
+{
+    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>("a root");
+    std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("another root");
+    std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("child 2");
+
+    addChild(foo, baz);
+
+    removeChild(foo, baz);
+    addChild(bar, baz);
+
+    ASSERT_EQ(foo->getNumChildren(), 0);
+    ASSERT_EQ(bar->getNumChildren(), 1);
+}
+
+TEST(word_branch, get_parent)
+{
+    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>("The root");
+    {
+        std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("a branch");
+        std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("another branch");
+        addChild(foo, bar);
+        addChild(foo, baz);
+        foo->name = "a parent";
+        bar->name = "a child";
+
+        ASSERT_FALSE(bar->isRoot());
+        ASSERT_EQ(baz->getParent()->name, "a parent");
+    }
+}
+
+TEST(word_branch, get_children_iter)
+{
+
+    std::shared_ptr<WordBranch> foo = std::make_shared<WordBranch>("A root");
+    std::shared_ptr<WordBranch> bar = std::make_shared<WordBranch>("child 0");
+    std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("child 1");
+    std::shared_ptr<WordBranch> qux = std::make_shared<WordBranch>("child 2");
+
+    addChild(foo, bar);
+    addChild(foo, baz);
+    addChild(foo, qux);
+
+    std::vector<std::string> rename = {"rename0", "rename1", "rename2"};
+    bar->name = rename[0];
+    baz->name = rename[1];
+    qux->name = rename[2];
+
+    int i = 0;
+    auto iter = foo->childrenBegin();
+    auto end = foo->childrenEnd();
+    for (; iter != end; std::advance(iter, 1))
+    {
+        ASSERT_EQ(rename[i++], (**iter).name);
+    }
+}
+
+// the whole design motivation behind this tree, self destructing children
+TEST(word_branch, children_destroyed)
+{
+    std::weak_ptr<WordBranch> cant_keep_alive;
+    {
+        std::shared_ptr<WordBranch> layer0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer1_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer1_1 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer2_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer3_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer3_1 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer4_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer4_1 = std::make_shared<WordBranch>();
+
+        cant_keep_alive = layer4_1;
+
+        addChild(layer0, layer1_0);
+        addChild(layer0, layer1_1);
+        addChild(layer1_0, layer2_0);
+        addChild(layer2_0, layer3_0);
+        addChild(layer2_0, layer3_1);
+        addChild(layer3_1, layer4_0);
+        addChild(layer3_1, layer4_1);
+    }
+
+    ASSERT_TRUE(cant_keep_alive.expired());
+}
+
+TEST(word_branch, children_kept_alive)
+{
+    std::shared_ptr<WordBranch> can_keep_alive3_1;
+    std::weak_ptr<WordBranch>
+        cant_keep_alive0_0,
+        cant_keep_alive1_0,
+        cant_keep_alive1_1,
+        cant_keep_alive2_0,
+        cant_keep_alive3_0,
+        cant_keep_alive3_1;
+
+    {
+        std::shared_ptr<WordBranch> layer0_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer1_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer1_1 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer2_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer3_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer3_1 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer4_0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer4_1 = std::make_shared<WordBranch>();
+
+        cant_keep_alive0_0 = layer0_0;
+        cant_keep_alive1_0 = layer1_0;
+        cant_keep_alive1_1 = layer1_1;
+        cant_keep_alive2_0 = layer2_0;
+        cant_keep_alive3_0 = layer3_0;
+        cant_keep_alive3_1 = layer3_1;
+
+        can_keep_alive3_1 = layer3_1;
+
+        addChild(layer0_0, layer1_0);
+        addChild(layer0_0, layer1_1);
+        addChild(layer1_0, layer2_0);
+        addChild(layer2_0, layer3_0);
+        addChild(layer2_0, layer3_1);
+        addChild(layer3_1, layer4_0);
+        addChild(layer3_1, layer4_1);
+    }
+
+    ASSERT_TRUE(cant_keep_alive0_0.expired());
+    ASSERT_TRUE(cant_keep_alive1_0.expired());
+    ASSERT_TRUE(cant_keep_alive1_1.expired());
+    ASSERT_TRUE(cant_keep_alive2_0.expired());
+    ASSERT_TRUE(cant_keep_alive3_0.expired()); // sibling is destroyed
+    ASSERT_FALSE(cant_keep_alive3_1.expired());
+
+    ASSERT_EQ(can_keep_alive3_1->getNumChildren(), 2);
+}
+
 } // namespace

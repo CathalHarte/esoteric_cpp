@@ -37,29 +37,44 @@ namespace tree
 * Class prototypes
 *******************************************************************************/
 
+//  This class implements a node for an unsorted tree of strings
+//  Design parameters :
+//      A branch without a parent is a root.
+//      A branch may have 1 parent and an unlimited number of children.
+//      We use smart ptrs throughout 
+//          As long as a reference to the parent remains, the children will not expire
+//          The corollary of this is that if a reference to a child is kept and no references to the parent are
+//          then the parent and siblings will expire and the child becomes the new root
 class WordBranch
 {
 public:
-
-    WordBranch() : name("") {}
-    WordBranch(std::string name) : name(name) {}
+    WordBranch(std::string name = "") : name(name) {}
     std::string name;
 
-    // we cannot expose either the parent of vector of children
-    // else we could add children in an incorrect manner
+    bool isRoot();
+    std::shared_ptr<WordBranch> getParent();
+    std::size_t getNumChildren();
+    std::vector<std::shared_ptr<WordBranch>>::iterator childrenBegin() {children.begin();}
+    std::vector<std::shared_ptr<WordBranch>>::iterator childrenEnd() {children.end();}
+
+private:
     std::weak_ptr<WordBranch> parent;
     std::vector<std::shared_ptr<WordBranch>> children;
-
-    bool isRoot();
+    friend void addChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
+    friend void removeChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
 };
 
 /*******************************************************************************
 * Function prototypes
 *******************************************************************************/
 
+// should I do the friend class pattern here?
+void addChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
+void removeChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch> child);
+
 /*! @}
  */
 
-}
+} // namespace tree
 
 #endif // _SHARED_PTR_TREE_H
