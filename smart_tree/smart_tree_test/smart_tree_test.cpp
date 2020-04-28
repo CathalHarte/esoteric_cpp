@@ -1,5 +1,5 @@
 /**
-* \file shared_ptr_tree_test.cpp
+* \file smart_tree_test.cpp
 *
 * \brief ... unit test
 *
@@ -14,9 +14,9 @@
 
 #include <gtest/gtest.h>
 
-#include <shared_ptr_tree.h>
+#include <smart_tree.h>
 
-using namespace tree;
+using namespace smart_tree;
 namespace
 {
 
@@ -274,7 +274,7 @@ TEST(word_branch, children_destroyed)
 {
     std::weak_ptr<WordBranch> cant_keep_alive;
     {
-        std::shared_ptr<WordBranch> layer0 = std::make_shared<WordBranch>();
+        std::shared_ptr<WordBranch> layer0_0 = std::make_shared<WordBranch>();
         std::shared_ptr<WordBranch> layer1_0 = std::make_shared<WordBranch>();
         std::shared_ptr<WordBranch> layer1_1 = std::make_shared<WordBranch>();
         std::shared_ptr<WordBranch> layer2_0 = std::make_shared<WordBranch>();
@@ -285,8 +285,8 @@ TEST(word_branch, children_destroyed)
 
         cant_keep_alive = layer4_1;
 
-        addChild(layer0, layer1_0);
-        addChild(layer0, layer1_1);
+        addChild(layer0_0, layer1_0);
+        addChild(layer0_0, layer1_1);
         addChild(layer1_0, layer2_0);
         addChild(layer2_0, layer3_0);
         addChild(layer2_0, layer3_1);

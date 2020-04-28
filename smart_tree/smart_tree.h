@@ -1,12 +1,13 @@
 /******************************************************************************/
 /*!
- * @file  shared_ptr_tree.h
- * @brief 
+ * @file  smart_tree.h
+ * @brief Named a smart tree because it is an unsorted tree implemented using 
+ *        smart pointers
  * 
  * @author Cathal Harte <cathal.harte@protonmail.com>
  */
-#ifndef _SHARED_PTR_TREE_H
-#define _SHARED_PTR_TREE_H
+#ifndef _SMART_TREE_H
+#define _SMART_TREE_H
 
 /*******************************************************************************
 * Includes
@@ -16,12 +17,12 @@
 #include <memory>
 #include <vector>
 
-namespace tree
+namespace smart_tree
 {
 
-/*! @defgroup shared_ptr_tree Shared_ptr_tree.
+/*! @defgroup smart_tree Smart_tree.
  *
- * @addtogroup shared_ptr_tree
+ * @addtogroup smart_tree
  * @{
  * @brief 
  */
@@ -41,7 +42,7 @@ namespace tree
 //  Design parameters :
 //      A branch without a parent is a root.
 //      A branch may have 1 parent and an unlimited number of children.
-//      We use smart ptrs throughout 
+//      We use smart ptrs throughout
 //          As long as a reference to the parent remains, the children will not expire
 //          The corollary of this is that if a reference to a child is kept and no references to the parent are
 //          then the parent and siblings will expire and the child becomes the new root
@@ -54,8 +55,8 @@ public:
     bool isRoot();
     std::shared_ptr<WordBranch> getParent();
     std::size_t getNumChildren();
-    std::vector<std::shared_ptr<WordBranch>>::iterator childrenBegin() {children.begin();}
-    std::vector<std::shared_ptr<WordBranch>>::iterator childrenEnd() {children.end();}
+    std::vector<std::shared_ptr<WordBranch>>::iterator childrenBegin() { children.begin(); }
+    std::vector<std::shared_ptr<WordBranch>>::iterator childrenEnd() { children.end(); }
 
 private:
     std::weak_ptr<WordBranch> parent;
@@ -75,6 +76,6 @@ void removeChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch>
 /*! @}
  */
 
-} // namespace tree
+} // namespace smart_tree
 
-#endif // _SHARED_PTR_TREE_H
+#endif // _SMART_TREE_H

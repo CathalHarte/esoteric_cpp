@@ -1,6 +1,6 @@
 /******************************************************************************/
 /*!
- * @file  shared_ptr_tree.cpp
+ * @file  smart_tree.cpp
  * @brief
  * 
  * @author Cathal Harte <cathal.harte@protonmail.com>
@@ -10,10 +10,10 @@
 * Includes
 ******************************************************************************/
 
-#include "shared_ptr_tree.h"
+#include "smart_tree.h"
 #include <cassert>
 
-namespace tree
+namespace smart_tree
 {
 
 /*******************************************************************************
