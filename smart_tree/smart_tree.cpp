@@ -20,21 +20,17 @@ namespace smart_tree
 * Definitions
 *******************************************************************************/
 
-
 /*******************************************************************************
 * Types
 *******************************************************************************/
-
 
 /*******************************************************************************
 * Internal function prototypes
 *******************************************************************************/
 
-
 /*******************************************************************************
 * Classes
 *******************************************************************************/
-
 
 /*******************************************************************************
 * Functions
@@ -66,9 +62,9 @@ void removeChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch>
 {
     auto iter = parent->children.begin();
     auto end = parent->children.end();
-    for(; iter != end; advance(iter,1))
+    for (; iter != end; advance(iter, 1))
     {
-        if(child == *iter)
+        if (child == *iter)
         {
             parent->children.erase(iter);
             child->parent.reset();
@@ -78,4 +74,4 @@ void removeChild(std::shared_ptr<WordBranch> parent, std::shared_ptr<WordBranch>
     throw "is not a child of parent";
 }
 
-}
+} // namespace smart_tree

@@ -132,7 +132,7 @@ TEST(stdlib_test, shared_ptr_comparison)
 TEST(word_branch, declaration_bare)
 {
     WordBranch foo;
-    ASSERT_EQ(foo.name, "");
+    ASSERT_EQ(foo.data, "");
     ASSERT_FALSE(foo.getParent());
     ASSERT_EQ(foo.getNumChildren(), 0);
 }
@@ -140,7 +140,7 @@ TEST(word_branch, declaration_bare)
 TEST(word_branch, declaration_string)
 {
     WordBranch foo("foo");
-    ASSERT_EQ(foo.name, "foo");
+    ASSERT_EQ(foo.data, "foo");
     ASSERT_FALSE(foo.getParent());
     ASSERT_EQ(foo.getNumChildren(), 0);
 }
@@ -155,11 +155,11 @@ TEST(word_branch, ptr_declarations)
     baz = bar;
 
     ASSERT_EQ(baz.use_count(), 2);
-    ASSERT_EQ(baz->name, "bar");
+    ASSERT_EQ(baz->data, "bar");
 
     bar.reset();
     ASSERT_EQ(baz.use_count(), 1);
-    ASSERT_EQ(baz->name, "bar");
+    ASSERT_EQ(baz->data, "bar");
 }
 
 // A WordBranch is a root if it has no parent, i.e. it has just been created, or if its own parent has been reset
@@ -235,11 +235,11 @@ TEST(word_branch, get_parent)
         std::shared_ptr<WordBranch> baz = std::make_shared<WordBranch>("another branch");
         addChild(foo, bar);
         addChild(foo, baz);
-        foo->name = "a parent";
-        bar->name = "a child";
+        foo->data = "a parent";
+        bar->data = "a child";
 
         ASSERT_FALSE(bar->isRoot());
-        ASSERT_EQ(baz->getParent()->name, "a parent");
+        ASSERT_EQ(baz->getParent()->data, "a parent");
     }
 }
 
@@ -256,16 +256,16 @@ TEST(word_branch, get_children_iter)
     addChild(foo, qux);
 
     std::vector<std::string> rename = {"rename0", "rename1", "rename2"};
-    bar->name = rename[0];
-    baz->name = rename[1];
-    qux->name = rename[2];
+    bar->data = rename[0];
+    baz->data = rename[1];
+    qux->data = rename[2];
 
     int i = 0;
     auto iter = foo->childrenBegin();
     auto end = foo->childrenEnd();
     for (; iter != end; std::advance(iter, 1))
     {
-        ASSERT_EQ(rename[i++], (**iter).name);
+        ASSERT_EQ(rename[i++], (**iter).data);
     }
 }
 

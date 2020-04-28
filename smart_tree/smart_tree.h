@@ -49,8 +49,8 @@ namespace smart_tree
 class WordBranch
 {
 public:
-    WordBranch(std::string name = "") : name(name) {}
-    std::string name;
+    WordBranch(std::string data = "") : data(data) {}
+    std::string data;
 
     bool isRoot();
     std::shared_ptr<WordBranch> getParent();
